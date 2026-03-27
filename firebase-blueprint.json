@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "username": { "type": "string", "description": "Display name" },
+        "phoneNumber": { "type": "string", "description": "Optional phone number" },
+        "avatar": { "type": "string", "description": "URL to avatar image" },
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Last online timestamp" }
+      },
+      "required": ["uid", "username"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A message sent between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique message ID" },
+        "text": { "type": "string", "description": "Message content" },
+        "senderId": { "type": "string", "description": "UID of the sender" },
+        "receiverId": { "type": "string", "description": "UID of the receiver" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Time sent" },
+        "status": { "type": "string", "enum": ["pending", "sent", "delivered", "read"], "description": "Delivery status" },
+        "deliveryMethod": { "type": "string", "enum": ["internet", "bluetooth", "quickshare", "offline"], "description": "Method used for delivery" },
+        "deliveredTime": { "type": "string", "format": "date-time", "description": "Time delivered" }
+      },
+      "required": ["id", "text", "senderId", "receiverId", "timestamp", "status", "deliveryMethod"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Global messages collection"
+    }
+  }
+}

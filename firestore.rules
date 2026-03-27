@@ -1,0 +1,89 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: userId (matches auth.uid)
+// Fields:
+//   - uid: string (required) - Firebase Auth UID
+//   - username: string (required) - Display name
+//   - phoneNumber: string (optional)
+//   - avatar: string (optional)
+//   - lastSeen: string (optional)
+//
+// Collection: messages
+// Document ID: messageId
+// Fields:
+//   - id: string (required)
+//   - text: string (required)
+//   - senderId: string (required)
+//   - receiverId: string (required)
+//   - timestamp: string (required)
+//   - status: string (required) - pending, sent, delivered, read
+//   - deliveryMethod: string (required) - internet, bluetooth, quickshare, offline
+//   - deliveredTime: string (optional)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "premkumar74645@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'username']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.username is string && data.username.size() > 0 && data.username.size() < 50;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['id', 'text', 'senderId', 'receiverId', 'timestamp', 'status', 'deliveryMethod']) &&
+             data.id is string &&
+             data.text is string && data.text.size() < 5000 &&
+             data.senderId == request.auth.uid &&
+             data.receiverId is string &&
+             data.status in ['pending', 'sent', 'delivered', 'read'] &&
+             data.deliveryMethod in ['internet', 'bluetooth', 'quickshare', 'offline'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    request.resource.data.uid == resource.data.uid;
+    }
+
+    match /messages/{messageId} {
+      // Users can read messages where they are either sender or receiver
+      allow read: if isAuthenticated() && 
+                  (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      
+      allow create: if isAuthenticated() && isValidMessage(request.resource.data);
+      
+      // Only receiver can update status to 'read' or 'delivered'
+      allow update: if isAuthenticated() && 
+                    (resource.data.receiverId == request.auth.uid || resource.data.senderId == request.auth.uid) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'deliveredTime']);
+    }
+  }
+}

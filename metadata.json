@@ -1,0 +1,5 @@
+{
+  "name": "NetBridge Messenger",
+  "description": "A modern, futuristic hybrid messaging app supporting Internet, Bluetooth, Quick Share, and Offline Queue delivery methods.",
+  "requestFramePermissions": []
+}

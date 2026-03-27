@@ -23,7 +23,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { AppView, Chat, Message, DeliveryMethod, MessageStatus } from './types';
-import { auth, db } from './firebase';
+import { auth, db, isFirebaseConfigured } from './firebase';
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { localDB } from './services/db';
@@ -81,6 +81,35 @@ const DeliveryIcon = ({ method, size = 14 }: { method: DeliveryMethod, size?: nu
 };
 
 function NetBridgeApp() {
+  if (!isFirebaseConfigured) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-8 text-center">
+        <div className="glass p-8 rounded-3xl max-w-md border border-rose-500/20">
+          <AlertCircle size={48} className="text-rose-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-4">Configuration Error</h2>
+          <p className="text-slate-400 mb-6">
+            Firebase configuration is missing or invalid. Please check your environment variables in Vercel.
+          </p>
+          <div className="text-left bg-black/20 p-4 rounded-xl mb-6 font-mono text-xs text-slate-500">
+            <p>Required variables:</p>
+            <ul className="list-disc list-inside mt-2">
+              <li>VITE_FIREBASE_API_KEY</li>
+              <li>VITE_FIREBASE_PROJECT_ID</li>
+              <li>VITE_FIREBASE_AUTH_DOMAIN</li>
+              <li>VITE_FIREBASE_FIRESTORE_DATABASE_ID</li>
+            </ul>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-3 bg-accent text-primary font-bold rounded-2xl hover:opacity-90 transition-opacity"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const [view, setView] = useState<AppView>('login');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [username, setUsername] = useState('');

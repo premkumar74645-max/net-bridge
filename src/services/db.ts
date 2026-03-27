@@ -8,6 +8,10 @@ export class LocalDB {
   private db: IDBDatabase | null = null;
 
   async init() {
+    if (typeof indexedDB === 'undefined') {
+      console.warn('IndexedDB is not available in this environment. Local storage will not be persistent.');
+      return Promise.resolve();
+    }
     return new Promise<void>((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, 1);
       request.onupgradeneeded = (event) => {

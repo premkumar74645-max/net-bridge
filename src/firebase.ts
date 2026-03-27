@@ -19,6 +19,6 @@ try {
 }
 
 export const auth = app ? getAuth(app) : null as any;
-export const db = app ? getFirestore(app, import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || "ai-studio-b6b04a28-eb03-4518-8ebd-befbf4af76c4") : null as any;
+export const db = app ? getFirestore(app, import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || (import.meta.env.DEV ? "ai-studio-b6b04a28-eb03-4518-8ebd-befbf4af76c4" : "(default)")) : null as any;
 
 export const isFirebaseConfigured = !!app;
